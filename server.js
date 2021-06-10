@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const errorHandler = require("./middleware/errorhandler.js");
 const connetDB = require("./config/db.js");
+const fileUpload = require("express-fileupload");
+const path = require("path");
 const app = express();
 
 //config path
@@ -15,6 +17,8 @@ const shop = require("./routes/shop");
 const product = require("./routes/product");
 
 app.use(morgan("dev"));
+app.use(fileUpload());
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/shop", shop);

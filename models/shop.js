@@ -9,6 +9,7 @@ const ShopSchema = new mongoose.Schema({
   },
   image: {
     type: String,
+    default: "no-photo.jpg",
   },
   rating: {
     type: Number,
