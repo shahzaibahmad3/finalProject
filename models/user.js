@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const geocoder = require("../utils/geojsonDecoder.js");
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -18,6 +19,25 @@ const UserSchema = new mongoose.Schema({
   },
   address: {
     type: String,
+  },
+  location: {
+    //GeoJson Point
+    type: {
+      type: String,
+      enum: ["Point"],
+      // required: true
+    },
+    coordinates: {
+      type: [Number],
+      require: true,
+      index: "2dsphere",
+    },
+    formattedAddress: String,
+    street: String,
+    city: String,
+    state: String,
+    zipcode: String,
+    country: String,
   },
   phone: {
     type: Number,
@@ -49,6 +69,22 @@ UserSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next(); //NOTE-> THERE IS NOT NEXT IN THE VIDEO
+});
+
+UserSchema.pre("save", async function (next) {
+  const loc = await geocoder.geocode(this.address);
+  this.location = {
+    type: "Point",
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAddress: loc[0].formattedAddress,
+    street: loc[0].streetName,
+    city: loc[0].city,
+    state: loc[0].state,
+    zipcode: loc[0].zipcode,
+    country: loc[0].country,
+  };
+  this.address = undefined;
+  next();
 });
 
 UserSchema.methods.getSignedJwtToken = function () {
