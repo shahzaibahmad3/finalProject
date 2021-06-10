@@ -12,11 +12,13 @@ dotenv.config({ path: "./config/config.env" });
 //routes import
 const auth = require("./routes/auth.js");
 const shop = require("./routes/shop");
+const product = require("./routes/product");
 
 app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/shop", shop);
+app.use("/api/v1", product);
 app.use(errorHandler);
 connetDB();
 
