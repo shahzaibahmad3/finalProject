@@ -3,6 +3,7 @@ const colors = require("colors");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const errorHandler = require("./middleware/errorhandler.js");
+const connetDB = require("./config/db.js");
 const app = express();
 
 //config path
@@ -15,6 +16,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use("/api/v1/auth", auth);
 app.use(errorHandler);
+connetDB();
 
 const port = process.env.PORT || 8000;
 const server = app.listen(
