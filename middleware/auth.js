@@ -30,7 +30,7 @@ exports.authorize =
     if (!roles.includes(req.user.role)) {
       return next(
         new ErrorHandler(
-          `This user is allowed to perform action , user role : ${req.user.role}`,
+          `This user is not allowed to perform this action , user role : ${req.user.role}`,
           403
         )
       );
