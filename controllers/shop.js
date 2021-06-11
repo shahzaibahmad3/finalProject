@@ -60,12 +60,16 @@ exports.createShop = async (req, res, next) => {
  */
 exports.uploadPhotoShop = async (req, res, next) => {
   try {
-
     req.body.shop = req.params.id;
 
     //get user of that shop and check whether the current user is same to it
     const shop = await shopModel.findById(req.body.shop);
 
+    if (!shop) {
+      return next(
+        new ErrorHandler(`Shop not found at id ${req.params.id}`, 400)
+      );
+    }
     console.log(shop.user);
     console.log(req.user.id);
 
@@ -77,25 +81,7 @@ exports.uploadPhotoShop = async (req, res, next) => {
       return next(new ErrorHandler(`Shop not found`, 403));
     }
 
-
-
     // const shop = await shopModel.findById(req.params.id);
-
-    if (!shop) {
-      return next(
-        new ErrorHandler(`Shop not found at id ${req.params.id}`, 400)
-      );
-    }
-
-    //make sure the user is owner
-    if (shop.user.toString() !== req.user.id && req.user.role !== "shopowner") {
-      return next(
-        new ErrorHandler(
-          `User ${req.user.id} is not authorised to update this resource`,
-          401
-        )
-      );
-    }
 
     if (!req.files) {
       return next(new ErrorHandler(`please upload a photo`, 400));
