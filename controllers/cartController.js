@@ -44,7 +44,8 @@ exports.addToCart = async (req, res, next) => {
         cart = await cartModel.create({
             customerId: req.user.id,
             shopId: shop,
-            products: { product:product, qty:1}
+            products: { product:product, qty:1},
+            amount: product.price
           });
     }else{
         cart=cart[0]
@@ -53,6 +54,7 @@ exports.addToCart = async (req, res, next) => {
                 index = search(product.id, cart.products)
                 if(product.availableQty >= cart.products[index].qty+1){
                     cart.products[index].qty=cart.products[index].qty+1;
+                    cart.amount = cart.amount + product.price;
                 }else{
                     return next(new ErrorHandler(`Product not available`, 403));
                 }
@@ -63,6 +65,7 @@ exports.addToCart = async (req, res, next) => {
             cart.shopId=req.body.shopId;
             cart.products=[]
             cart.products.push({product, qty:1});
+            cart.amount=product.price;
         }
         cart = await cartModel.updateOne(cart)
     }
@@ -83,7 +86,13 @@ exports.addToCart = async (req, res, next) => {
       cart = await cartModel.find({
           customerId: req.user.id
       });
-
+      if(cart.length == 0){
+        res.status(200).json({
+            sucess: true,
+            body: null,
+        })
+          return 
+      }
       cart=cart[0]
 
       shop = await shopModel.findById(cart.shopId)
@@ -96,7 +105,7 @@ exports.addToCart = async (req, res, next) => {
 
       res.status(200).json({
         sucess: true,
-        body: {customer:cart.customerId, shop:shop, products: products},
+        body: {customer:cart.customerId, shop:shop, products: products, amount:cart.amount},
     })
      }
     } catch (error) {
@@ -106,7 +115,7 @@ exports.addToCart = async (req, res, next) => {
 
 /**
  * @description delete cart
- * @param route GET /api/v1/user/profile/cart
+ * @param route DELETE /api/v1/user/profile/cart
  * @param access user
  */
  exports.removeFromCart = async (req, res, next) => {
@@ -131,6 +140,7 @@ exports.addToCart = async (req, res, next) => {
         index = search(product.id, cart.products)
         if(cart.products[index].qty-1>=0){
             cart.products[index].qty=cart.products[index].qty-1;
+            cart.amount = cart.amount - product.price;
             if(cart.products[index].qty == 0){
                 cart.products.splice(index, 1);
                 cart.shopId=null
@@ -147,8 +157,6 @@ exports.addToCart = async (req, res, next) => {
       next(error);
     }
   };
-
-
 
 function search(product, products) {
     for(var i=0; i<products.length; i++){
