@@ -1,4 +1,5 @@
 const shopModel = require("../models/shop.js");
+const userModel = require("../models/user");
 const ErrorHandler = require("../utils/errorHandler.js");
 const geocoder = require("../utils/geojsonDecoder.js");
 const path = require("path");
@@ -117,6 +118,42 @@ exports.uploadPhotoShop = async (req, res, next) => {
         sucess: true,
         data: file.name,
       });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @description find shop using zipcode and area in miles
+ * @param route GET /api/v1/shop/radius/:lat/:long
+ * @param access PRIVATE
+ */
+exports.findShopByLocation = async (req, res, next) => {
+  const { lat, long } = req.params;
+
+  const area = 15 / 3963.2; //in miles
+
+  try {
+    const user = await userModel.find({
+      location: {
+        $geoWithin: { $centerSphere: [[lat, long], area] },
+      },
+    });
+
+    let result = [];
+
+    for (let i of user) {
+      let shop = await shopModel.find({ user: i._id });
+
+      if (Object.keys(shop).length !== 0) {
+        result.push(shop);
+      }
+    }
+
+    res.status(200).json({
+      sucess: true,
+      data: result,
     });
   } catch (error) {
     next(error);

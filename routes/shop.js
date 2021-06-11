@@ -3,6 +3,7 @@ const {
   getShops,
   createShop,
   uploadPhotoShop,
+  findShopByLocation,
 } = require("../controllers/shop");
 const { protectRoute, authorize } = require("../middleware/auth.js");
 
@@ -12,6 +13,8 @@ router
   .route("/")
   .get(getShops)
   .post(protectRoute, authorize("shopowner"), createShop);
+
+router.route("/radius/:lat/:long").get(findShopByLocation);
 
 router
   .route("/:id/photo")

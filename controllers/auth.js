@@ -8,7 +8,7 @@ const userModel = require("../models/user.js");
  */
 exports.registerUser = async (req, res, next) => {
   try {
-    const { name, email, address, phone, role, password } = req.body;
+    const { name, email, address, phone, role, password, geometry } = req.body;
 
     // if role consumer then address is nessasary
     if (role == "consumer") {
@@ -26,6 +26,7 @@ exports.registerUser = async (req, res, next) => {
       phone,
       role,
       password,
+      geometry,
     });
 
     // //   //NOTE: static are called on model so , it will called upon userModel

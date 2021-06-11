@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const geocoder = require("../utils/geojsonDecoder.js");
+
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
