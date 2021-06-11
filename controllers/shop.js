@@ -53,65 +53,86 @@ exports.createShop = async (req, res, next) => {
   }
 };
 
-// /**
-//  * @description upload photo of shop
-//  * @param route PUT /api/v1/shop/:id/photo
-//  * @param access PRIVATE
-//  */
-//  exports.uploadPhotoShop = async (req, res, next) => {
-//   try {
-//     const shop = await bootcampModel.findById(req.params.id);
+/**
+ * @description upload photo of shop
+ * @param route PUT /api/v1/shop/:id/photo
+ * @param access PRIVATE
+ */
+exports.uploadPhotoShop = async (req, res, next) => {
+  try {
 
-//     if (!bootcamp) {
-//       return next(
-//         new ErrorHandler(`Bootcamp not found at id ${req.params.id}`, 400)
-//       );
-//     }
-//     //make sure the user is owner
-//     if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
-//       return next(
-//         new ErrorHandler(
-//           `User ${req.user.id} is not authorised to update this bootcamp`,
-//           401
-//         )
-//       );
-//     }
-//     if (!req.files) {
-//       return next(new ErrorHandler(`please upload a photo`, 400));
-//     }
+    req.body.shop = req.params.id;
 
-//     //make sure file is an image
-//     const file = req.files.file;
-//     if (!file.mimetype.startsWith("image")) {
-//       return next(new ErrorHandler(`please upload an image file`, 400));
-//     }
+    //get user of that shop and check whether the current user is same to it
+    const shop = await shopModel.findById(req.body.shop);
 
-//     //make sure image is less than 1mb
-//     if (file.size > process.env.MAX_FILE_UPLOAD) {
-//       return next(
-//         new ErrorHandler(
-//           `please upload a file less than ${process.env.MAX_FILE_UPLOAD}`,
-//           400
-//         )
-//       );
-//     }
+    console.log(shop.user);
+    console.log(req.user.id);
 
-//     //CREATE a unique name for each image
-//     file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+    if (shop) {
+      if (shop.user != req.user.id) {
+        return next(new ErrorHandler(`Not a owner for this shop`, 403));
+      }
+    } else {
+      return next(new ErrorHandler(`Shop not found`, 403));
+    }
 
-//     file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (err) => {
-//       if (err) {
-//         return next(new ErrorHandler(`problem with file upload`, 500));
-//       }
-//       await bootcampModel.findByIdAndUpdate(req.params.id, {
-//         photo: file.name,
-//       });
-//       res.status(200).json({
-//         sucess: true,
-//         data: file.name,
-//       });
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+
+
+    // const shop = await shopModel.findById(req.params.id);
+
+    if (!shop) {
+      return next(
+        new ErrorHandler(`Shop not found at id ${req.params.id}`, 400)
+      );
+    }
+
+    //make sure the user is owner
+    if (shop.user.toString() !== req.user.id && req.user.role !== "shopowner") {
+      return next(
+        new ErrorHandler(
+          `User ${req.user.id} is not authorised to update this resource`,
+          401
+        )
+      );
+    }
+
+    if (!req.files) {
+      return next(new ErrorHandler(`please upload a photo`, 400));
+    }
+
+    //make sure file is an image
+    const file = req.files.file;
+    if (!file.mimetype.startsWith("image")) {
+      return next(new ErrorHandler(`please upload an image file`, 400));
+    }
+
+    //make sure image is less than 1mb
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+      return next(
+        new ErrorHandler(
+          `please upload a file less than ${process.env.MAX_FILE_UPLOAD}`,
+          400
+        )
+      );
+    }
+
+    //CREATE a unique name for each image
+    file.name = `photo_${shop._id}${path.parse(file.name).ext}`;
+
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (err) => {
+      if (err) {
+        return next(new ErrorHandler(`problem with file upload`, 500));
+      }
+      await shopModel.findByIdAndUpdate(req.params.id, {
+        image: file.name,
+      });
+      res.status(200).json({
+        sucess: true,
+        data: file.name,
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
