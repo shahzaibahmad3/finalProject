@@ -5,6 +5,16 @@ const ErrorHandler = require("../utils/errorHandler.js");
 
 const secret = "123";
 
+success={
+    image : "https://cdn1.iconfinder.com/data/icons/emails-6/32/email_mail_verify_verified_inbox_true_right-512.png",
+    color : "#00cc7a"
+}
+
+failure={
+    image : "https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png",
+    color : "#ff3333"
+}
+
 const encode = (text) => {
     return CryptoJs.AES.encrypt(text, secret).toString();
 }
@@ -32,45 +42,33 @@ exports.getEmailVerificationLink = (email) => {
 
 exports.verifyEmail = async (req, res, next) => {
     try{
-        console.log(req.query.message)
         message = req.query.message.split(" ").join("+");
-        console.log(message)
         decoded = JSON.parse(decode(message));
     
-        console.log("decoded: ", decoded)
-
         user = await userModel.findOne({
             email: decoded.email
-        });
-    
-        console.log("user: ", user)
+        });   
     
         if(user.emailVerified == true){
-            res.render('emailVerification', { status:"Email Alreday Verified" })
+            res.render('emailVerification', { image:success.image, color: success.color, status:"Email Alreday Verified" })
             return
         }
         emailVerification = await emailVerificationModel.findOne({
             email: decoded.email
         })
 
-        console.log("email: ", emailVerification.key, decoded.key)
         if(emailVerification.key == decoded.key){
             user.emailVerified = true;
             await userModel.updateOne(user);
             await emailVerificationModel.deleteOne(emailVerification);
     
-            res.status(200).json({
-                status: "Email verified Successfully"
-            })
+           res.render('emailVerification', { image:success.image, color: success.color, status:"Email successfully verified" })
+            return;
         }else{
-            console.log("NOOOOO")
-            res.status(400).json({
-                status: "Wrong Link"
-            })
+          res.render('emailVerification', { image:failure.image, color: failure.color, status:"Wrong Link"})
         }
         } catch (error) {
-           res.status(400).json({
-               status: "Error verifying email"
-           })
+            res.render('emailVerification', { image: failure.image, color: failure.color, status:"Error Verifying email" })
+           
       }
 }
