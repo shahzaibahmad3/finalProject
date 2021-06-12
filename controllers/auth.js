@@ -2,6 +2,9 @@ const ErrorHandler = require("../utils/errorHandler.js");
 const userModel = require("../models/user.js");
 const nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
+var path = require("path");
+var ejs = require("ejs");
+
 //node mailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -13,6 +16,11 @@ const transporter = nodemailer.createTransport({
 const {
   getEmailVerificationLink,
 } = require("../controllers/emailVerification.js");
+
+welcome = {
+  image:"https://www.pinclipart.com/picdir/big/215-2159832_shopping-icon-free-download-online-shop-icon-png.png",
+  color: "#9999ff",
+};
 
 /**
  * @description register user
@@ -51,22 +59,34 @@ exports.registerUser = async (req, res, next) => {
     console.log(emailVerificationlink);
 
     if (token) {
-      let mailOption = {
-        from: process.env.EMAIL,
-        to: email,
-        subject: "Welcome Email",
-        text: `You have successfully registered ! Welcome to our platform ${
-          "http://localhost:8000" + emailVerificationlink
-        } `,
-      };
+      let filePath = path.join(__dirname, "../views/emailVerification.ejs");
+      ejs.renderFile(filePath, {
+        image: welcome.image,
+        color: welcome.color,
+        status: "Verify Your Email",
+        text: "You have successfully registered!",
+        verificationLink: "http://localhost:8000" + emailVerificationlink
+      },  (err, data) => {
+        if(err) {
+          console.log("error :", err)
+        }else{
+          let mailOption = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: "Welcome to LocalMart",
+            html: data
+          };
 
-      transporter.sendMail(mailOption, (err, data) => {
-        if (err) {
-          console.log("Error occured", err);
-        } else {
-          console.log("Email sent !", data);
+          transporter.sendMail(mailOption, (err, data) => {
+            if (err) {
+              console.log("Error occured", err);
+            } else {
+              console.log("Email sent !", data);
+            }
+          });
         }
       });
+
     }
 
     res.status(200).json({

@@ -32,8 +32,14 @@ exports.getEmailVerificationLink = (email) => {
     email: email,
     key: key,
   };
+  
+  emailVerificationModel.deleteMany({email: email}).then(() => {
+      console.log("Deleted")
+    }).catch((error) => {
+      console.log("Error: ", error)
+    })
 
-  await = emailVerificationModel.create(message);
+  emailVerificationModel.create(message);
 
   linkText = encode(JSON.stringify(message));
   link = "/api/v1/user/email-verification?message=" + linkText;
@@ -45,7 +51,7 @@ exports.verifyEmail = async (req, res, next) => {
     message = req.query.message.split(" ").join("+");
     decoded = JSON.parse(decode(message));
 
-    console.log(decoded);
+    console.log(decoded)
 
     user = await userModel.findOne({
       email: decoded.email,
@@ -56,24 +62,29 @@ exports.verifyEmail = async (req, res, next) => {
         image: success.image,
         color: success.color,
         status: "Email Alreday Verified",
+        text: "Thank You",
+        verificationLink: ""      
       });
       return;
     }
+
     emailVerification = await emailVerificationModel.findOne({
       email: decoded.email,
     });
 
-    console.log(emailVerification);
+    console.log("key ", emailVerification)
 
     if (emailVerification.key == decoded.key) {
       user.emailVerified = true;
-      await userModel.updateOne(user);
+      await userModel.update({_id:user.id}, {emailVerified: true})
       await emailVerificationModel.deleteOne(emailVerification);
 
       res.render("emailVerification", {
         image: success.image,
         color: success.color,
         status: "Email successfully verified",
+        text: "Thank You",
+        verificationLink: ""
       });
       return;
     } else {
@@ -81,13 +92,18 @@ exports.verifyEmail = async (req, res, next) => {
         image: failure.image,
         color: failure.color,
         status: "Wrong Link",
+        text: "Thank You",
+        verificationLink: ""
       });
     }
   } catch (error) {
+      console.log(error)
     res.render("emailVerification", {
       image: failure.image,
       color: failure.color,
       status: "Error Verifying email",
+      text: "Thank You",
+      verificationLink: ""
     });
   }
 };
