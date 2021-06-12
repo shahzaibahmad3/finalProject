@@ -62,3 +62,76 @@ exports.createProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @description upload photo of product
+ * @param route PUT /api/v1/:id/product/photo
+ * @param access PRIVATE
+ */
+exports.uploadPhotoProduct = async (req, res, next) => {
+  try {
+    const product = await productModel.findById(req.params.id);
+
+    req.body.shop = product.shop;
+
+    //get user of that shop and check whether the current user is same to it
+    const shop = await shopModel.findById(req.body.shop);
+
+    if (!shop) {
+      return next(
+        new ErrorHandler(`Product not found at id ${req.params.id}`, 400)
+      );
+    }
+
+    console.log(shop.user);
+    console.log(req.user.id);
+
+    if (shop) {
+      if (shop.user != req.user.id) {
+        return next(new ErrorHandler(`Not a owner for this shop`, 403));
+      }
+    } else {
+      return next(new ErrorHandler(`Shop not found`, 403));
+    }
+
+    if (!req.files) {
+      return next(new ErrorHandler(`please upload a photo`, 400));
+    }
+
+    //make sure file is an image
+    const file = req.files.file;
+    if (!file.mimetype.startsWith("image")) {
+      return next(new ErrorHandler(`please upload an image file`, 400));
+    }
+
+    //make sure image is less than 1mb
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+      return next(
+        new ErrorHandler(
+          `please upload a file less than ${process.env.MAX_FILE_UPLOAD}`,
+          400
+        )
+      );
+    }
+
+    //CREATE a unique name for each image
+    file.name = `photo_${product._id}${path.parse(file.name).ext}`;
+
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (err) => {
+      if (err) {
+        return next(new ErrorHandler(`problem with file upload`, 500));
+      }
+
+      await productModel.findByIdAndUpdate(product._id, {
+        image: file.name,
+      });
+
+      res.status(200).json({
+        sucess: true,
+        data: file.name,
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
