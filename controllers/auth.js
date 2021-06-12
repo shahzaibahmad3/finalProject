@@ -1,6 +1,5 @@
 const ErrorHandler = require("../utils/errorHandler.js");
 const userModel = require("../models/user.js");
-<<<<<<< HEAD
 const nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
 //node mailer
@@ -11,9 +10,9 @@ const transporter = nodemailer.createTransport({
     pass: process.env.PASSWORD,
   },
 });
-=======
-const { getEmailVerificationLink } = require("../controllers/emailVerification.js");
->>>>>>> 992de3171b15e465c1943251c42da11bf4dac17a
+const {
+  getEmailVerificationLink,
+} = require("../controllers/emailVerification.js");
 
 /**
  * @description register user
@@ -49,14 +48,16 @@ exports.registerUser = async (req, res, next) => {
     const token = user.getSignedJwtToken();
     const emailVerificationlink = getEmailVerificationLink(email);
 
-    console.log(emailVerificationlink)
+    console.log(emailVerificationlink);
 
     if (token) {
       let mailOption = {
         from: process.env.EMAIL,
         to: email,
         subject: "Welcome Email",
-        text: "You have successfully registered ! Welcome to our platform",
+        text: `You have successfully registered ! Welcome to our platform ${
+          "http://localhost:8000" + emailVerificationlink
+        } `,
       };
 
       transporter.sendMail(mailOption, (err, data) => {
