@@ -39,6 +39,10 @@ exports.addToCart = async (req, res, next) => {
         return next(new ErrorHandler(`Bad Request wrong shop`, 403));
     }
 
+    if(product.availableQty == 0){
+        return next(new ErrorHandler(`Bad Request product is not available`, 403));
+    }
+
     if(cart.length === 0){
         console.log("saving cart")
         cart = await cartModel.create({
@@ -53,6 +57,7 @@ exports.addToCart = async (req, res, next) => {
             if(cart.products.find(p => p.product == product.id)){
                 index = search(product.id, cart.products)
                 if(product.availableQty >= cart.products[index].qty+1){
+                    console.log("YES")
                     cart.products[index].qty=cart.products[index].qty+1;
                     cart.amount = cart.amount + product.price;
                 }else{
@@ -133,11 +138,17 @@ exports.addToCart = async (req, res, next) => {
 
 
         cart=cart[0]
+
         if(cart.products.length==0){
             return next(new ErrorHandler(`Cart Empty`, 403));
         }
 
         index = search(product.id, cart.products)
+
+        if(index == -1){
+            return next(new ErrorHandler(`Item not in cart`, 403));
+        }
+
         if(cart.products[index].qty-1>=0){
             cart.products[index].qty=cart.products[index].qty-1;
             cart.amount = cart.amount - product.price;
