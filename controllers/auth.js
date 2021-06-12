@@ -1,5 +1,6 @@
 const ErrorHandler = require("../utils/errorHandler.js");
 const userModel = require("../models/user.js");
+const { getEmailVerificationLink } = require("../controllers/emailVerification.js");
 
 /**
  * @description register user
@@ -33,6 +34,9 @@ exports.registerUser = async (req, res, next) => {
     // //   //methods are called on the actual user data , so it will call on 'user'
 
     const token = user.getSignedJwtToken();
+    const emailVerificationlink = getEmailVerificationLink(email);
+
+    console.log(emailVerificationlink)
 
     res.status(200).json({
       sucess: true,
