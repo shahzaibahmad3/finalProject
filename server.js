@@ -18,6 +18,7 @@ const consumerRoutes = require("./routes/consumerRoutes.js");
 const shop = require("./routes/shop");
 const product = require("./routes/product");
 
+app.set('view engine', 'ejs');
 app.use(morgan("dev"));
 app.use(fileUpload());
 app.use(express.static(path.join(__dirname, "public")));

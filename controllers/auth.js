@@ -1,5 +1,6 @@
 const ErrorHandler = require("../utils/errorHandler.js");
 const userModel = require("../models/user.js");
+<<<<<<< HEAD
 const nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
 //node mailer
@@ -10,6 +11,9 @@ const transporter = nodemailer.createTransport({
     pass: process.env.PASSWORD,
   },
 });
+=======
+const { getEmailVerificationLink } = require("../controllers/emailVerification.js");
+>>>>>>> 992de3171b15e465c1943251c42da11bf4dac17a
 
 /**
  * @description register user
@@ -43,6 +47,9 @@ exports.registerUser = async (req, res, next) => {
     // //   //methods are called on the actual user data , so it will call on 'user'
 
     const token = user.getSignedJwtToken();
+    const emailVerificationlink = getEmailVerificationLink(email);
+
+    console.log(emailVerificationlink)
 
     if (token) {
       let mailOption = {
