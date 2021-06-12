@@ -1,5 +1,15 @@
 const ErrorHandler = require("../utils/errorHandler.js");
 const userModel = require("../models/user.js");
+const nodemailer = require("nodemailer");
+var smtpTransport = require("nodemailer-smtp-transport");
+//node mailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
+  },
+});
 
 /**
  * @description register user
@@ -33,6 +43,23 @@ exports.registerUser = async (req, res, next) => {
     // //   //methods are called on the actual user data , so it will call on 'user'
 
     const token = user.getSignedJwtToken();
+
+    if (token) {
+      let mailOption = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Welcome Email",
+        text: "You have successfully registered ! Welcome to our platform",
+      };
+
+      transporter.sendMail(mailOption, (err, data) => {
+        if (err) {
+          console.log("Error occured", err);
+        } else {
+          console.log("Email sent !", data);
+        }
+      });
+    }
 
     res.status(200).json({
       sucess: true,
