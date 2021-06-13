@@ -25,7 +25,7 @@ const decode = (cipher) => {
   return bytes.toString(CryptoJs.enc.Utf8);
 };
 
-exports.getEmailVerificationLink = (email) => {
+exports.getEmailVerificationLink = async (email) => {
   key = Math.floor(100000 + Math.random() * 900000) + "";
 
   message = {
@@ -33,13 +33,13 @@ exports.getEmailVerificationLink = (email) => {
     key: key,
   };
   
-  emailVerificationModel.deleteMany({email: email}).then(() => {
+  await emailVerificationModel.deleteMany({email: email}).then(() => {
       console.log("Deleted")
     }).catch((error) => {
       console.log("Error: ", error)
     })
 
-  emailVerificationModel.create(message);
+  await emailVerificationModel.create(message);
 
   linkText = encode(JSON.stringify(message));
   link = "/api/v1/user/email-verification?message=" + linkText;

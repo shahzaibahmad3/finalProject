@@ -54,7 +54,7 @@ exports.registerUser = async (req, res, next) => {
     // //   //methods are called on the actual user data , so it will call on 'user'
 
     const token = user.getSignedJwtToken();
-    const emailVerificationlink = getEmailVerificationLink(email);
+    const emailVerificationlink = await getEmailVerificationLink(email);
 
     console.log(emailVerificationlink);
 

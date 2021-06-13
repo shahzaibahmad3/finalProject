@@ -4,6 +4,19 @@ const shopModel = require("../models/shop.js");
 const productModel = require("../models/product.js");
 const orderModel = require("../models/order.js");
 const userModel = require("../models/user.js");
+const path = require("path");
+const nodemailer = require("nodemailer");
+const ejs = require("ejs");
+
+
+//node mailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
+  },
+});
 
 /**
  * @description create order
@@ -13,8 +26,6 @@ const userModel = require("../models/user.js");
 exports.createOrder = async (req, res, next) => {
   try {
     if (req.user) {
-      // const cartSession = await cartModel.startSession();
-      // cartSession.startTransaction();
 
       carts = await cartModel.find({
         customerId: req.user.id,
@@ -24,12 +35,17 @@ exports.createOrder = async (req, res, next) => {
       }
       cart = carts[0];
       products = [];
+      productss = [];
       flag = false;
       for (i = 0; i < cart.products.length; i++) {
         product = await productModel.findById(cart.products[i].product);
         if (product.availableQty >= cart.products[i].qty) {
           product.availableQty = product.availableQty - cart.products[i].qty;
           products.push(product);
+          productss.push({
+            name: product.name,
+            qty: cart.products[i].qty
+          });
         } else {
           flag = true;
           if (product.availableQty > 0) {
@@ -49,7 +65,7 @@ exports.createOrder = async (req, res, next) => {
         res.status(400).json({
           sucess: false,
           isCartUpdated: true,
-          data: "Cart updated some orders are no longer available",
+          data: "Cart updated some items are no longer available",
         });
         return;
       } else {
@@ -74,10 +90,38 @@ exports.createOrder = async (req, res, next) => {
 
         await cartModel.deleteOne(cart);
 
+        shopp = await shopModel.findById(cart.shopId);
+
         // sent email successfull
 
-        //   await cartSession.commitTransaction();
-        //   cartSession.endSession();
+      let filePath = path.join(__dirname, "../views/paymentSuccessful.ejs");
+      ejs.renderFile(filePath, {
+        image: "https://cdn4.iconfinder.com/data/icons/eshop/403/37-512.png",
+        color: "#b34d4d",
+        text: "Thank You for Shopping with us.",
+        amount: order.amount,
+        shop: shopp.name,
+        products: productss
+        },  (err, data) => {
+        if(err) {
+          console.log("error :", err)
+        }else{
+          let mailOption = {
+            from: process.env.EMAIL,
+            to: req.user.email,
+            subject: "Payment Successful",
+            html: data
+          };
+
+          transporter.sendMail(mailOption, (err, data) => {
+            if (err) {
+              console.log("Error occured", err);
+            } else {
+              console.log("Email sent !", data);
+            }
+          });
+        }
+      });
 
         res.status(201).json({
           sucess: true,
@@ -86,9 +130,6 @@ exports.createOrder = async (req, res, next) => {
       }
     }
   } catch (error) {
-    // await cartSession.abortTransaction();
-    // cartSession.endSession();
-
     next(error);
   }
 };

@@ -57,14 +57,14 @@ exports.addToCart = async (req, res, next) => {
             if(cart.products.find(p => p.product == product.id)){
                 index = search(product.id, cart.products)
                 if(product.availableQty >= cart.products[index].qty+1){
-                    console.log("YES")
                     cart.products[index].qty=cart.products[index].qty+1;
                     cart.amount = cart.amount + product.price;
                 }else{
                     return next(new ErrorHandler(`Product not available`, 403));
                 }
             }else{
-                cart.products.push({product, qty:1})
+                cart.products.push({product, qty:1});
+                cart.amount = cart.amount + product.price;
             }
         }else{
             cart.shopId=req.body.shopId;
