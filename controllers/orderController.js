@@ -150,6 +150,15 @@ exports.getAllOrdersForCustomer = async (req, res, next) => {
         customerId: req.user.id,
       });
 
+
+      if(orders.length == 0){
+        res.status(200).json({
+          sucess: true,
+          body: null,
+        });
+        return;
+      }
+
       ordersList = [];
       for (k = 0; k < orders.length; k++) {
         order = orders[k];
