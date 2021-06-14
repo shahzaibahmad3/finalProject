@@ -18,6 +18,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const tax = process.env.TAX;
+
 /**
  * @description create order
  * @param route POST /api/v1/user/profile/cart/checkout
@@ -99,7 +101,9 @@ exports.createOrder = async (req, res, next) => {
         image: "https://cdn4.iconfinder.com/data/icons/eshop/403/37-512.png",
         color: "#b34d4d",
         text: "Thank You for Shopping with us.",
+        tax: tax,
         amount: order.amount,
+        total: (parseInt(tax)+parseInt(order.amount)),
         shop: shopp.name,
         products: productss
         },  (err, data) => {

@@ -5,6 +5,8 @@ var smtpTransport = require("nodemailer-smtp-transport");
 var path = require("path");
 var ejs = require("ejs");
 
+const origin =  process.env.ORIGIN
+
 //node mailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -65,7 +67,7 @@ exports.registerUser = async (req, res, next) => {
         color: welcome.color,
         status: "Verify Your Email",
         text: "You have successfully registered!",
-        verificationLink: "http://localhost:8000" + emailVerificationlink
+        verificationLink: origin + "" + emailVerificationlink
       },  (err, data) => {
         if(err) {
           console.log("error :", err)
